@@ -2,10 +2,19 @@ import http from 'http'
 import cors from 'cors'
 import express from 'express'
 import path from 'path'
+import { promises as fs } from 'fs'
+import dotenv from 'dotenv'
+
+import { pokemonRoutes } from './api/pokemon.routes.js'
 
 
+const favoritesFilePath = path.resolve('data', 'favorites.json')
 const app = express()
 const server = http.createServer(app)
+
+dotenv.config({
+    path: '.env', //give .env file location
+})
 
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.resolve('dist')))
@@ -24,9 +33,7 @@ if (process.env.NODE_ENV === 'production') {
     app.use(cors(corsOptions))
 }
 
-app.get('/**', (req, res) => {
-    res.sendFile(path.resolve('dist/index.html'))
-})
+app.use('/api/pokemon', pokemonRoutes)
 
 const PORT = process.env.PORT || 3030
 server.listen(PORT, () =>
