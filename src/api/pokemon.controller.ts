@@ -19,3 +19,13 @@ export const addPokemonToFavList = async (req: Request, res: Response) => {
         res.status(400).send('Cannot add pokemon to Fav list')
     }
 }
+
+export const removePokemonFromFavList = async (req: Request, res: Response) => {
+    try {
+        const pokemonId = req.params.id
+        const updatedFavList = await pokemonService.remove(pokemonId)
+        res.send(updatedFavList)
+    } catch (err) {
+        res.status(400).send('Cannot remove pokemon from Fav list')
+    }
+}

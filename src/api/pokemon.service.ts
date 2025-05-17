@@ -53,6 +53,7 @@ const add = async (pokemonId: string) => {
     const pokemons = JSON.parse(content)
 
     const newFavPok = pokemons.find((poke: any) => poke.id === +pokemonId)
+    newFavPok.isFav = true
 
     const favListContent = await fs.readFile(FavListFilePath, 'utf-8')
     const favList = JSON.parse(favListContent)
@@ -60,10 +61,26 @@ const add = async (pokemonId: string) => {
     const updatedFavList = [...favList, newFavPok]
     await fs.writeFile(FavListFilePath, JSON.stringify(updatedFavList, null, 2))
 
+    const updatedPokemonList = pokemons.map((poke: any) =>
+        poke.id === +pokemonId ? newFavPok : poke
+    )
+    await fs.writeFile(filePath, JSON.stringify(updatedPokemonList, null, 2))
+
+    return updatedFavList
+}
+
+const remove = async (pokemonId: string) => {
+    const favListContent = await fs.readFile(FavListFilePath, 'utf-8')
+    const favList = JSON.parse(favListContent)
+
+    const updatedFavList = favList.filter((poke: any) => poke.id !== +pokemonId)
+    await fs.writeFile(FavListFilePath, JSON.stringify(updatedFavList, null, 2))
+
     return updatedFavList
 }
 
 export const pokemonService = {
     query,
-    add
+    add,
+    remove
 }
