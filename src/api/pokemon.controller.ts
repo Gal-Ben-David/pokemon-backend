@@ -1,7 +1,7 @@
 import { pokemonService } from "./pokemon.service.js";
 import { Request, Response } from 'express'
 
-export const getPokemons = async (req: Request, res: Response) => {
+export const loadPokemons = async (req: Request, res: Response) => {
     try {
         const pokemons = await pokemonService.query()
         res.send(pokemons)
