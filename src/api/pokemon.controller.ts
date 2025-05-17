@@ -9,3 +9,13 @@ export const loadPokemons = async (req: Request, res: Response) => {
         res.status(400).send('Cannot get pokemons')
     }
 }
+
+export const addPokemonToFavList = async (req: Request, res: Response) => {
+    try {
+        const pokemonId = req.body.id
+        const updatedFavList = await pokemonService.add(pokemonId)
+        res.send(updatedFavList)
+    } catch (err) {
+        res.status(400).send('Cannot add pokemon to Fav list')
+    }
+}

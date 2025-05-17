@@ -11,6 +11,7 @@ import { pokemonRoutes } from './api/pokemon.routes.js'
 const favoritesFilePath = path.resolve('data', 'favorites.json')
 const app = express()
 const server = http.createServer(app)
+app.use(express.json())
 
 dotenv.config({
     path: '.env', //give .env file location

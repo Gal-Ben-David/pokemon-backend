@@ -3,6 +3,7 @@ import path from 'path'
 import { PokeListItem } from '../interfaces.js'
 
 const filePath = path.resolve('data', 'pokemon.json')
+const FavListFilePath = path.resolve('data', 'favorites.json')
 
 const query = async () => {
     try {
@@ -47,6 +48,22 @@ const query = async () => {
     }
 }
 
+const add = async (pokemonId: string) => {
+    const content = await fs.readFile(filePath, 'utf-8')
+    const pokemons = JSON.parse(content)
+
+    const newFavPok = pokemons.find((poke: any) => poke.id === +pokemonId)
+
+    const favListContent = await fs.readFile(FavListFilePath, 'utf-8')
+    const favList = JSON.parse(favListContent)
+
+    const updatedFavList = [...favList, newFavPok]
+    await fs.writeFile(FavListFilePath, JSON.stringify(updatedFavList, null, 2))
+
+    return updatedFavList
+}
+
 export const pokemonService = {
     query,
+    add
 }
