@@ -61,11 +61,11 @@ const loadFavList = async () => {
 
 }
 
-const add = async (pokemonId: string) => {
+const add = async (pokemonId: number) => {
     const content = await fs.readFile(filePath, 'utf-8')
     const pokemons = JSON.parse(content)
 
-    const newFavPok = pokemons.find((poke: Pokemon) => poke.id === +pokemonId)
+    const newFavPok = pokemons.find((poke: Pokemon) => poke.id === pokemonId)
     newFavPok.isFav = true
 
     const favList = await loadFavList()
@@ -73,7 +73,7 @@ const add = async (pokemonId: string) => {
     await fs.writeFile(FavListFilePath, JSON.stringify(updatedFavList, null, 2))
 
     const updatedPokemonList = pokemons.map((poke: Pokemon) =>
-        poke.id === +pokemonId ? newFavPok : poke
+        poke.id === pokemonId ? newFavPok : poke
     )
 
     await fs.writeFile(filePath, JSON.stringify(updatedPokemonList, null, 2))

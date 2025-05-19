@@ -21,7 +21,7 @@ export const loadFavList = async (req: Request, res: Response) => {
 
 export const addPokemonToFavList = async (req: Request, res: Response) => {
     try {
-        const pokemonId = req.body.id
+        const { pokemonId } = req.body
         const updatedFavList = await pokemonService.add(pokemonId)
         res.send(updatedFavList)
     } catch (err) {
