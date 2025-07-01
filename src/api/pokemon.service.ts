@@ -6,10 +6,29 @@ import type { Pokemon } from '../interfaces.js'
 const filePath = path.resolve('data', 'pokemon.json')
 const FavListFilePath = path.resolve('data', 'favorites.json')
 
-const query = async () => {
+const writeToFile = async (path: string, content: Pokemon[]) => {
+    try {
+        await fs.writeFile(path, JSON.stringify(content, null, 2))
+    } catch (err) {
+        console.error(`Failed to add content to ${path}:`, err)
+        throw err
+    }
+}
+
+const loadFromFile = async (filePath: string) => {
     try {
         const content = await fs.readFile(filePath, 'utf-8')
-        const parsed = JSON.parse(content)
+        const res = JSON.parse(content)
+        return res
+    } catch (err) {
+        console.error(`Failed to load ${filePath}:`, err)
+        throw err
+    }
+}
+
+const query = async () => {
+    try {
+        const parsed = await loadFromFile(filePath)
 
         if (!parsed || !parsed.length) {
             console.log('File is empty, fetching full Pokémon data...')
@@ -37,7 +56,7 @@ const query = async () => {
                 })
             )
             console.log('Writing to file...')
-            await fs.writeFile(filePath, JSON.stringify(fullData, null, 2))
+            await writeToFile(filePath, fullData)
             return fullData
         }
 
@@ -51,61 +70,49 @@ const query = async () => {
 
 const loadFavList = async () => {
     try {
-        const favListContent = await fs.readFile(FavListFilePath, 'utf-8')
-        const favList = JSON.parse(favListContent)
+        const favList = loadFromFile(FavListFilePath)
         return favList
     } catch (err) {
         console.error('Failed to load fav list:', err)
-        throw err
-    }
-
-}
-
-const loadPokemons = async () => {
-    try {
-        const content = await fs.readFile(filePath, 'utf-8')
-        const pokemons = JSON.parse(content)
-        return pokemons
-    } catch (err) {
-        console.error('Failed to load pokemon list:', err)
         throw err
     }
 }
 
 const add = async (pokemonId: number) => {
 
-    const pokemons = await loadPokemons()
+    const pokemons = await loadFromFile(filePath)
 
     const newFavPok = pokemons.find((poke: Pokemon) => poke.id === pokemonId)
     newFavPok.isFav = true
 
-    const favList = await loadFavList()
+    const favList = await loadFromFile(FavListFilePath)
     const updatedFavList = [...favList, newFavPok]
-    await fs.writeFile(FavListFilePath, JSON.stringify(updatedFavList, null, 2))
+
+    await writeToFile(FavListFilePath, updatedFavList)
 
     const updatedPokemonList = pokemons.map((poke: Pokemon) =>
         poke.id === pokemonId ? newFavPok : poke
     )
 
-    await fs.writeFile(filePath, JSON.stringify(updatedPokemonList, null, 2))
+    await writeToFile(filePath, updatedPokemonList)
 
-    return updatedFavList
+    return newFavPok
 }
 
 const remove = async (pokemonId: string) => {
-    const pokemons = await loadPokemons()
-    const favList = await loadFavList()
+    const pokemons = await loadFromFile(filePath)
+    const favList = await loadFromFile(FavListFilePath)
 
     const updatedFavList = favList.filter((poke: Pokemon) => poke.id !== +pokemonId)
-    await fs.writeFile(FavListFilePath, JSON.stringify(updatedFavList, null, 2))
+    await writeToFile(FavListFilePath, updatedFavList)
 
     const updatedPokemonList = pokemons.map((poke: Pokemon) =>
         poke.id === +pokemonId ? { ...poke, isFav: false } : poke
     )
 
-    await fs.writeFile(filePath, JSON.stringify(updatedPokemonList, null, 2))
+    await writeToFile(filePath, updatedPokemonList)
 
-    return updatedFavList
+    return 1
 }
 
 export const pokemonService = {
