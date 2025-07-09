@@ -4,7 +4,6 @@ import { PokeListItem } from '../interfaces.js'
 import type { Pokemon } from '../interfaces.js'
 
 const filePath = path.resolve('data', 'pokemon.json')
-const FavListFilePath = path.resolve('data', 'favorites.json')
 
 const writeToFile = async (path: string, content: Pokemon[]) => {
     try {
@@ -26,9 +25,9 @@ const loadFromFile = async (filePath: string) => {
     }
 }
 
-const query = async () => {
+const query = async (isFavPoke: boolean) => {
     try {
-        const parsed = await loadFromFile(filePath)
+        let parsed: Pokemon[] = await loadFromFile(filePath)
 
         if (!parsed || !parsed.length) {
             console.log('File is empty, fetching full Pokémon data...')
@@ -40,9 +39,6 @@ const query = async () => {
                 data.results.map(async (poke: PokeListItem) => {
                     const res = await fetch(poke.url)
                     const pokeDetails = await res.json()
-
-                    // const speciesRes = await fetch(pokeDetails.species.url)
-                    // const speciesData = await speciesRes.json()
 
                     const pokeToSave = {
                         id: pokeDetails.id,
@@ -60,7 +56,7 @@ const query = async () => {
             return fullData
         }
 
-        return parsed
+        return isFavPoke ? parsed.filter(poke => poke.isFav) : parsed
 
     } catch (err) {
         console.error('Failed to fetch Pokémon:', err)
@@ -68,31 +64,17 @@ const query = async () => {
     }
 }
 
-const loadFavList = async () => {
-    try {
-        const favList = loadFromFile(FavListFilePath)
-        return favList
-    } catch (err) {
-        console.error('Failed to load fav list:', err)
-        throw err
-    }
-}
-
 const add = async (pokemonId: number) => {
 
     const pokemons = await loadFromFile(filePath)
+    let newFavPok = {}
 
-    const newFavPok = pokemons.find((poke: Pokemon) => poke.id === pokemonId)
-    newFavPok.isFav = true
-
-    const favList = await loadFromFile(FavListFilePath)
-    const updatedFavList = [...favList, newFavPok]
-
-    await writeToFile(FavListFilePath, updatedFavList)
-
-    const updatedPokemonList = pokemons.map((poke: Pokemon) =>
-        poke.id === pokemonId ? newFavPok : poke
-    )
+    const updatedPokemonList = pokemons.map((poke: Pokemon) => {
+        if (poke.id === pokemonId) {
+            newFavPok = { ...poke, isFav: true }
+            return newFavPok
+        } else return poke
+    })
 
     await writeToFile(filePath, updatedPokemonList)
 
@@ -101,14 +83,9 @@ const add = async (pokemonId: number) => {
 
 const remove = async (pokemonId: string) => {
     const pokemons = await loadFromFile(filePath)
-    const favList = await loadFromFile(FavListFilePath)
-
-    const updatedFavList = favList.filter((poke: Pokemon) => poke.id !== +pokemonId)
-    await writeToFile(FavListFilePath, updatedFavList)
 
     const updatedPokemonList = pokemons.map((poke: Pokemon) =>
-        poke.id === +pokemonId ? { ...poke, isFav: false } : poke
-    )
+        poke.id === +pokemonId ? { ...poke, isFav: false } : poke)
 
     await writeToFile(filePath, updatedPokemonList)
 
@@ -119,5 +96,4 @@ export const pokemonService = {
     query,
     add,
     remove,
-    loadFavList
 }
